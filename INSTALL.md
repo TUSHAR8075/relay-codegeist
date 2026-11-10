@@ -1,0 +1,10 @@
+# Install Relay
+
+**[➜ Click here to install Relay on your Atlassian site](https://developer.atlassian.com/console/install/28fa35e8-b024-496e-be4e-2b607c3f5aca?signature=AYABeMS%2BhO63fzld6qm6Iy%2FOvEUAAAADAAdhd3Mta21zAEthcm46YXdzOmttczp1cy13ZXN0LTI6NzA5NTg3ODM1MjQzOmtleS83MDVlZDY3MC1mNTdjLTQxYjUtOWY5Yi1lM2YyZGNjMTQ2ZTcAuAECAQB4CxqLTo9l4lqXuFjNim1xJM%2Bp%2F3TVP9xHS2BrU5DRRucBjwYR6GYevZx4vppX39vAUwAAAH4wfAYJKoZIhvcNAQcGoG8wbQIBADBoBgkqhkiG9w0BBwEwHgYJYIZIAWUDBAEuMBEEDDbuuMCEYRdu2xbDAQIBEIA7BfQiu%2Fg8RLL15ct1EqrAIz6QYaz5yZpM4Y7T%2F1Aom%2FNBWxnQL78GEk3uQ5w23Jkaok6PHJeLA8b%2FsE4AB2F3cy1rbXMAS2Fybjphd3M6a21zOmV1LXdlc3QtMTo3MDk1ODc4MzUyNDM6a2V5LzQ2MzBjZTZiLTAwYzMtNGRlMi04NzdiLTYyN2UyMDYwZTVjYwC4AQICAHi9bVMAkme4qVQX1fQHo6ePw3H40A7cGfz7yrmSfBWMXgFnY3ofpOJIzFZEv5LpttsyAAAAfjB8BgkqhkiG9w0BBwagbzBtAgEAMGgGCSqGSIb3DQEHATAeBglghkgBZQMEAS4wEQQM%2Bg%2FZQy3zbscI67Q9AgEQgDtEDjGhz%2BNlYB773Vix5Xq1IM5FqIG%2BY9GilIDcmNSL75RMDnn1MLiSHz4spLn%2Bbc%2FEffR2lodypaR5IgAHYXdzLWttcwBLYXJuOmF3czprbXM6dXMtZWFzdC0xOjcwOTU4NzgzNTI0MzprZXkvNmMxMjBiYTAtNGNkNS00OTg1LWI4MmUtNDBhMDQ5NTJjYzU3ALgBAgIAeDYASx0XCjkny4iLV6vz%2BKtEGSGT6kdt0QRpkn6D%2FlVEAd0fLZY7AK61XusYS3a%2Ba1IAAAB%2BMHwGCSqGSIb3DQEHBqBvMG0CAQAwaAYJKoZIhvcNAQcBMB4GCWCGSAFlAwQBLjARBAwbCd%2BzAwGFnEIV5yYCARCAO5eNaBAun0PAWxyU2SwMEbVvMh0zAFqDz641UwXp5svkZLj1tcWaphidc21akSqy0XFlnbD9rXBtT2%2F0AgAAAAAMAAAQAAAAAAAAAAAAAAAAAIHsmDwqXB30qqLdRySu2u3%2F%2F%2F%2F%2FAAAAAQAAAAAAAAAAAAAAAQAAADJa5MPglmjj2CXqbcU51XasnkuBVjaa6uq%2FsSmEjHANukaSQ6Pvm8NMMsUQa7L%2BUDWP5MFA0YG2eo%2BouLqkZF0GFW0%3D&product=jira&product=confluence)**
+
+1. Open the link above, choose your Atlassian site and install in **Jira** (and **Confluence**, used for the handover pack).
+2. In Jira, open **Apps → Relay**.
+3. Pick a person who has open issues and click **Scan their work**. Click **Allow access** the first time (Teamwork Graph calls run as you).
+4. Choose owners, then **Save plan and publish pack** (enter a Confluence space key) and **Apply reassignments**.
+
+Demo video and full description: see the Devpost submission and the [README](README.md).
