@@ -1,0 +1,269 @@
+modules:
+  rovo:agent:
+    - key: relay-agent
+      name: Relay
+      description: >
+        Builds handovers from the Teamwork Graph when someone goes on leave,
+        changes team or leaves. Finds everything they own, scores the risk,
+        suggests new owners and writes the handover pack.
+      prompt: >
+        You are Relay, a handover agent for Atlassian teams. Your job is to make
+        sure nothing falls through the cracks when a person is away or leaving.
+
+        Workflow: 1. When a user says someone (or "I") will be away, leaving or
+        switching team,
+           collect: the person (default: the current user), start date and end date
+           (YYYY-MM-DD; default start is today and end is 14 days later), and optionally
+           a Confluence space key for the handover pack.
+        2. Call relay-scan-work to list their open work with risk scores.
+        Summarise the
+           top risks first: critical and high items, why each is risky (the "reasons"
+           field) and anything due while they are away.
+        3. Call relay-suggest-owners to propose a new owner for each item.
+        Present the
+           suggestions as a short table: item, risk, suggested owner, why.
+        4. Ask the user to confirm before changing anything. Only after an
+        explicit
+           "yes" call relay-create-handover (creates the plan and the Confluence pack),
+           and only after a second explicit confirmation call relay-apply-reassignments.
+        5. When someone returns, call relay-return-briefing and summarise what
+        changed:
+           items finished, items still open, new comments and who to talk to.
+        6. For "who owns X" or "who should I ask about ISSUE-1" questions, call
+        relay-who-owns.
+
+        Rules: - Never invent issues, people or dates. Only report what actions
+        return. - Always cite issue keys and include links when they are
+        provided. - If an action returns notes about missing data or
+        permissions, tell the user. - Keep answers short and scannable: lead
+        with risk, then actions.
+      conversationStarters:
+        - I'm on leave for two weeks from Monday. What could fall through?
+        - Plan a handover for a teammate who is leaving on Friday
+        - I'm back. What changed while I was away?
+        - Who should I ask about this issue?
+      actions:
+        - relay-scan-work
+        - relay-suggest-owners
+        - relay-create-handover
+        - relay-apply-reassignments
+        - relay-return-briefing
+        - relay-who-owns
+
+  action:
+    - key: relay-scan-work
+      name: Scan a person's open work
+      function: fnScan
+      actionVerb: GET
+      description: >
+        Lists the open work a person owns across Jira issues, pull requests and
+        Confluence pages, with a risk score (0-100), a risk tier and the reasons
+        for the score, for a given absence window.
+      inputs:
+        person:
+          title: Person
+          type: string
+          required: false
+          description: Account ID or display name of the person. Leave empty for the
+            current user.
+        startDate:
+          title: Start date
+          type: string
+          required: false
+          description: First day away, YYYY-MM-DD. Defaults to today.
+        endDate:
+          title: End date
+          type: string
+          required: false
+          description: Last day away, YYYY-MM-DD. Defaults to 14 days after the start date.
+    - key: relay-suggest-owners
+      name: Suggest new owners
+      function: fnSuggest
+      actionVerb: GET
+      description: >
+        For each open item a person owns, suggests up to three people who could
+        take it over, ranked by recent expertise in the same project and
+        components, involvement in the item, team membership and current
+        workload. People who are away are excluded.
+      inputs:
+        person:
+          title: Person
+          type: string
+          required: false
+          description: Account ID or display name of the person handing over. Empty means
+            the current user.
+        startDate:
+          title: Start date
+          type: string
+          required: false
+          description: First day away, YYYY-MM-DD.
+        endDate:
+          title: End date
+          type: string
+          required: false
+          description: Last day away, YYYY-MM-DD.
+    - key: relay-create-handover
+      name: Create handover plan and pack
+      function: fnCreate
+      actionVerb: CREATE
+      description: >
+        Saves a handover plan for a person and publishes a handover pack page in
+        Confluence (status, next step, context, new owner and who to ask for
+        every item). Does not reassign anything.
+      inputs:
+        person:
+          title: Person
+          type: string
+          required: false
+          description: Account ID or display name. Empty means the current user.
+        startDate:
+          title: Start date
+          type: string
+          required: false
+          description: First day away, YYYY-MM-DD.
+        endDate:
+          title: End date
+          type: string
+          required: false
+          description: Last day away, YYYY-MM-DD.
+        spaceKey:
+          title: Confluence space key
+          type: string
+          required: false
+          description: Space to publish the handover pack in. If empty, the pack is saved
+            in Relay only.
+    - key: relay-apply-reassignments
+      name: Apply handover reassignments
+      function: fnApply
+      actionVerb: UPDATE
+      description: >
+        Reassigns the Jira issues in a saved handover plan to their chosen new
+        owners and leaves a context comment on each issue. Only call after the
+        user explicitly confirms.
+      inputs:
+        person:
+          title: Person
+          type: string
+          required: false
+          description: Account ID or display name whose plan should be applied. Empty
+            means the current user.
+    - key: relay-return-briefing
+      name: Return briefing
+      function: fnBriefing
+      actionVerb: GET
+      description: >
+        For a person coming back, summarises what happened to each handed-over
+        item while they were away: finished, still open, new comments and who
+        worked on it.
+      inputs:
+        person:
+          title: Person
+          type: string
+          required: false
+          description: Account ID or display name. Empty means the current user.
+    - key: relay-who-owns
+      name: Who owns this
+      function: fnWhoOwns
+      actionVerb: GET
+      description: >
+        Tells who currently owns a Jira issue, whether it is covered by a
+        handover, who the original owner is and until when, and who else has
+        context on it.
+      inputs:
+        issueKey:
+          title: Issue key
+          type: string
+          required: false
+          description: Jira issue key such as PROJ-123. In an issue view this can be empty.
+
+  rovo:mcp:
+    - key: relay-mcp
+      name: Relay Handover MCP
+      tools:
+        - relay-scan-work
+        - relay-suggest-owners
+        - relay-return-briefing
+        - relay-who-owns
+
+  jira:globalPage:
+    - key: relay-dashboard
+      title: Relay
+      icon: resource:icons;relay.svg
+      resource: dashboard
+      resolver:
+        function: resolver
+      render: native
+
+  jira:issuePanel:
+    - key: relay-issue-panel
+      title: Relay handover
+      icon: resource:icons;relay.svg
+      resource: panel
+      resolver:
+        function: resolver
+      render: native
+
+  scheduledTrigger:
+    - key: relay-daily-check
+      function: scheduler
+      interval: day
+
+  function:
+    - key: resolver
+      handler: index.resolver
+    - key: scheduler
+      handler: index.scheduler
+    - key: fnScan
+      handler: index.actionScanWork
+    - key: fnSuggest
+      handler: index.actionSuggestOwners
+    - key: fnCreate
+      handler: index.actionCreateHandover
+    - key: fnApply
+      handler: index.actionApplyReassignments
+    - key: fnBriefing
+      handler: index.actionReturnBriefing
+    - key: fnWhoOwns
+      handler: index.actionWhoOwns
+
+resources:
+  - key: dashboard
+    path: src/frontend/dashboard.jsx
+  - key: panel
+    path: src/frontend/panel.jsx
+  - key: icons
+    path: static/icons
+
+app:
+  id: ari:cloud:ecosystem::app/28fa35e8-b024-496e-be4e-2b607c3f5aca
+  runtime:
+    name: nodejs22.x
+  compatibility:
+    jira:
+      required: true
+    confluence:
+      required: false
+
+permissions:
+  scopes:
+    # Jira REST
+    - read:jira-work
+    - write:jira-work
+    - read:jira-user
+    # Confluence REST
+    - read:page:confluence
+    - write:page:confluence
+    - read:space:confluence
+    - search:confluence
+    # Forge storage
+    - storage:app
+    # Teamwork Graph (one scope per object type)
+    - read:graph:user:atlassian
+    - read:graph:team:atlassian
+    - read:graph:issue:jira
+    - read:graph:issue-status:jira
+    - read:graph:issue-comment:jira
+    - read:graph:project:jira
+    - read:graph:goal:atlassian
+    - read:graph:pull-request:external
+    - read:graph:page:confluence
